@@ -1,0 +1,17 @@
+{
+  "name": "Yash Pal | Portfolio",
+  "short_name": "YashPal",
+  "description": "Interactive iPhone-style portfolio by Yash Pal — React Native Developer",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#000000",
+  "theme_color": "#000000",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ]
+}
