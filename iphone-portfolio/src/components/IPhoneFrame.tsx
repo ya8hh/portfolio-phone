@@ -1,5 +1,5 @@
 import { useState, useRef, type ReactNode } from 'react';
-import { AnimatePresence } from 'framer-motion';
+import { AnimatePresence, motion, useMotionValue, useSpring, useMotionTemplate } from 'framer-motion';
 import AppWindow from './AppWindow';
 import ControlCenter from './ControlCenter';
 import NotificationCenter from './NotificationCenter';
@@ -10,30 +10,57 @@ export default function IPhoneFrame({ children }: { children: ReactNode }) {
   const [isBooted, setIsBooted] = useState(false);
   const [isLocked, setIsLocked] = useState(true);
   const frameRef = useRef<HTMLDivElement>(null);
-  const [tilt, setTilt] = useState({ x: 0, y: 0 });
+  
+  // Motion values to avoid catastrophic re-renders on mouse drag
+  const mouseX = useMotionValue(50);
+  const mouseY = useMotionValue(50);
+  
+  // Smooth the mouse motion for background and tilt
+  const smoothX = useSpring(mouseX, { damping: 30, stiffness: 200 });
+  const smoothY = useSpring(mouseY, { damping: 30, stiffness: 200 });
+
+  // Spring values specifically for device tilt
+  const tiltX = useSpring(0, { damping: 30, stiffness: 300 });
+  const tiltY = useSpring(0, { damping: 30, stiffness: 300 });
 
   const handleMouseMove = (e: React.MouseEvent) => {
     if (!frameRef.current || window.innerWidth < 640) return;
+    
+    // Calculate tilt
     const rect = frameRef.current.getBoundingClientRect();
     const centerX = rect.left + rect.width / 2;
     const centerY = rect.top + rect.height / 2;
     const x = ((e.clientY - centerY) / rect.height) * 8;
     const y = ((e.clientX - centerX) / rect.width) * -8;
-    setTilt({ x, y });
+    tiltX.set(x);
+    tiltY.set(y);
+
+    // Calculate background gradient mapping (percentage)
+    mouseX.set((e.clientX / window.innerWidth) * 100);
+    mouseY.set((e.clientY / window.innerHeight) * 100);
   };
 
-  const handleMouseLeave = () => setTilt({ x: 0, y: 0 });
+  const handleMouseLeave = () => {
+    tiltX.set(0);
+    tiltY.set(0);
+    mouseX.set(50);
+    mouseY.set(50);
+  };
+
+  // Dynamic parallax background tied to cursor
+  const backgroundStyle = useMotionTemplate`radial-gradient(circle at ${smoothX}% ${smoothY}%, rgba(124,58,237,0.12) 0%, transparent 40%), radial-gradient(circle at calc(100% - ${smoothX}%) calc(100% - ${smoothY}%), rgba(6,182,212,0.12) 0%, transparent 40%), radial-gradient(#C7C7CC 1px, transparent 1px)`;
+  const backgroundSize = 'auto, auto, 28px 28px';
+
+  // Dynamic transform built from the spring values for smooth 3D tilting
+  const phoneTransform = useMotionTemplate`perspective(1200px) rotateX(${tiltX}deg) rotateY(${tiltY}deg)`;
 
   return (
-    <div
+    <motion.div
       className="h-[100dvh] w-full flex items-center justify-center p-0 sm:p-8 relative overflow-hidden"
       style={{
         backgroundColor: '#F2F2F7',
-        backgroundImage:
-          'radial-gradient(circle at 20% 80%, rgba(124,58,237,0.07) 0%, transparent 50%),' +
-          'radial-gradient(circle at 80% 20%, rgba(6,182,212,0.07) 0%, transparent 50%),' +
-          'radial-gradient(#C7C7CC 1px, transparent 1px)',
-        backgroundSize: 'auto, auto, 28px 28px',
+        backgroundImage: backgroundStyle,
+        backgroundSize: backgroundSize,
       }}
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
@@ -114,12 +141,11 @@ export default function IPhoneFrame({ children }: { children: ReactNode }) {
       </div>
 
       {/* ─── iPhone Frame ─── */}
-      <div
+      <motion.div
         ref={frameRef}
         className="relative w-full h-full sm:w-auto sm:h-full sm:max-h-[900px] sm:aspect-[390/844] sm:bg-[#111] sm:rounded-[50px] overflow-hidden sm:ring-[14px] sm:ring-[#1a1a1a] z-10 shrink-0"
         style={{
-          transform: `perspective(1200px) rotateX(${tilt.x}deg) rotateY(${tilt.y}deg)`,
-          transition: 'transform 0.15s ease-out',
+          transform: phoneTransform,
           boxShadow: '0 40px_80px_-12px rgba(0,0,0,0.3), inset 0 0 0 1px rgba(255,255,255,0.05)',
         }}
       >
@@ -144,7 +170,7 @@ export default function IPhoneFrame({ children }: { children: ReactNode }) {
           <ControlCenter />
           <NotificationCenter />
         </div>
-      </div>
-    </div>
+      </motion.div>
+    </motion.div>
   );
 }

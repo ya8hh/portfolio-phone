@@ -1,37 +1,48 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAppContext } from '../hooks/useAppContext';
 import { apps } from '../data/apps';
-import { ChevronLeft } from 'lucide-react';
-import { type ReactNode } from 'react';
+import { ChevronLeft, Loader2 } from 'lucide-react';
+import { type ReactNode, lazy, Suspense } from 'react';
 
-// Project Apps
-import ShareNow from '../apps/ShareNow';
-import Shortener from '../apps/Shortener';
-import DevConnect from '../apps/DevConnect';
-import YTConverter from '../apps/YTConverter';
+// Project Apps (Lazy Loaded)
+const ShareNow = lazy(() => import('../apps/ShareNow'));
+const Shortener = lazy(() => import('../apps/Shortener'));
+const DevConnect = lazy(() => import('../apps/DevConnect'));
+const YTConverter = lazy(() => import('../apps/YTConverter'));
 
-// System Apps
-import Notes from '../apps/Notes';
-import Settings from '../apps/Settings';
-import Phone from '../apps/Phone';
-import Experience from '../apps/Experience';
-import Projects from '../apps/Projects';
-import Spotify from '../apps/Spotify';
+// System Apps (Lazy Loaded)
+const Notes = lazy(() => import('../apps/Notes'));
+const Settings = lazy(() => import('../apps/Settings'));
+const Phone = lazy(() => import('../apps/Phone'));
+const Experience = lazy(() => import('../apps/Experience'));
+const Projects = lazy(() => import('../apps/Projects'));
+const Spotify = lazy(() => import('../apps/Spotify'));
 
 const getAppContent = (id: string): ReactNode => {
+  let Content;
   switch (id) {
-    case 'sharenow': return <ShareNow />;
-    case 'shortener': return <Shortener />;
-    case 'devconnect': return <DevConnect />;
-    case 'ytconverter': return <YTConverter />;
-    case 'notes': return <Notes />;
-    case 'settings': return <Settings />;
-    case 'phone': return <Phone />;
-    case 'experience': return <Experience />;
-    case 'projects': return <Projects />;
-    case 'spotify': return <Spotify />;
+    case 'sharenow': Content = <ShareNow />; break;
+    case 'shortener': Content = <Shortener />; break;
+    case 'devconnect': Content = <DevConnect />; break;
+    case 'ytconverter': Content = <YTConverter />; break;
+    case 'notes': Content = <Notes />; break;
+    case 'settings': Content = <Settings />; break;
+    case 'phone': Content = <Phone />; break;
+    case 'experience': Content = <Experience />; break;
+    case 'projects': Content = <Projects />; break;
+    case 'spotify': Content = <Spotify />; break;
     default: return <div className="p-8">App Content Not Found</div>;
   }
+  
+  return (
+    <Suspense fallback={
+      <div className="w-full h-full flex items-center justify-center">
+        <Loader2 className="animate-spin text-gray-400" size={32} />
+      </div>
+    }>
+      {Content}
+    </Suspense>
+  );
 };
 
 export default function AppWindow() {
