@@ -47,13 +47,16 @@ export default function AppWindow() {
           initial={{ borderRadius: 40 }}
           animate={{ borderRadius: 0 }}
           exit={{ borderRadius: window.innerWidth < 640 ? 0 : 36, opacity: 0 }}
-          transition={{ type: 'spring', damping: 25, stiffness: 200, mass: 0.8 }}
-          className={`absolute inset-0 z-50 flex flex-col w-full h-[100dvh] sm:h-full overflow-hidden ${isDark ? 'bg-ios-bg text-white' : 'bg-[#FAFAFA] text-[#1D1D1F]'} sm:rounded-[36px]`}
+          transition={{ type: 'spring', damping: 28, stiffness: 220, mass: 0.8 }}
+          className={`absolute inset-0 z-50 flex flex-col w-full h-[100dvh] sm:h-full overflow-hidden ${isDark ? 'bg-[#1C1C1E] text-white' : 'bg-[#F2F2F7] text-[#1C1C1E]'} sm:rounded-[36px]`}
         >
           {/* App Header (fake iOS header) */}
-          <div 
-            className={`flex items-end px-2 pb-3 border-b backdrop-blur-3xl pt-8 shrink-0 relative z-20 ${isDark ? 'border-white/10 bg-black/50' : 'border-black/5 bg-white/70'}`}
-            style={{ height: 'calc(90px + env(safe-area-inset-top, 0px))', paddingTop: 'calc(2rem + env(safe-area-inset-top, 0px))' }}
+          <div
+            className={`flex items-end px-2 pb-3 border-b backdrop-blur-3xl shrink-0 relative z-20 ${isDark ? 'border-white/10 bg-black/50' : 'border-black/5 bg-white/70'}`}
+            style={{
+              height: 'calc(var(--content-top, 56px) + 36px)',
+              paddingTop: 'calc(var(--safe-top, 44px) + 4px)',
+            }}
           >
             <button 
               onClick={closeApp}
@@ -62,7 +65,7 @@ export default function AppWindow() {
               <ChevronLeft size={28} strokeWidth={2.5} />
               <span className="text-[17px] font-medium tracking-tight -ml-1 text-ios-blue drop-shadow-sm">Home</span>
             </button>
-            <div className={`absolute inset-x-0 bottom-3 text-center pointer-events-none font-semibold text-[17px] tracking-tight ${isDark ? 'text-white' : 'text-black/80'}`}>
+            <div className={`absolute inset-x-0 bottom-3 text-center pointer-events-none font-semibold text-[17px] tracking-tight ${isDark ? 'text-white' : 'text-[#1C1C1E]'}`}>
                {app.name}
             </div>
           </div>

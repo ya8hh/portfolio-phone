@@ -8,68 +8,86 @@ type AppIconProps = {
 };
 
 export default function AppIcon({ app }: AppIconProps) {
-  const { openApp } = useAppContext();
+  const { openApp, activeApp } = useAppContext();
   const [isJiggling, setIsJiggling] = useState(false);
 
   let longPressTimer: ReturnType<typeof setTimeout>;
 
-  const handleTouchStart = () => {
+  const handlePressStart = () => {
     longPressTimer = setTimeout(() => {
       setIsJiggling(true);
-      // Stop jiggling after 3 seconds
       setTimeout(() => setIsJiggling(false), 3000);
     }, 600);
   };
 
-  const handleTouchEnd = () => {
-    clearTimeout(longPressTimer);
-  };
+  const handlePressEnd = () => clearTimeout(longPressTimer);
+
+  const isActive = activeApp === app.id;
 
   return (
-    <div className="flex flex-col items-center gap-1 w-[72px] sm:w-[80px] group select-none">
+    <div className={`flex flex-col items-center gap-1.5 select-none ${app.isDock ? 'w-auto' : 'w-[72px] sm:w-[76px]'}`}>
       <motion.button
         layoutId={`app-container-${app.id}`}
-        whileHover={{ scale: 1.05 }}
-        whileTap={{ scale: 0.95 }}
+        /* Spring tap animation — feels alive */
+        whileHover={{ scale: 1.06 }}
+        whileTap={{ scale: 0.94 }}
+        transition={{ type: 'spring', stiffness: 400, damping: 18 }}
         onClick={() => { if (!isJiggling) openApp(app.id); }}
-        onMouseDown={handleTouchStart}
-        onMouseUp={handleTouchEnd}
-        onMouseLeave={handleTouchEnd}
-        onTouchStart={handleTouchStart}
-        onTouchEnd={handleTouchEnd}
+        onMouseDown={handlePressStart}
+        onMouseUp={handlePressEnd}
+        onMouseLeave={handlePressEnd}
+        onTouchStart={handlePressStart}
+        onTouchEnd={handlePressEnd}
         animate={isJiggling ? {
-          rotate: [0, -2, 2, -2, 2, 0],
-          transition: { duration: 0.4, repeat: Infinity }
+          rotate: [0, -2.5, 2.5, -2.5, 2.5, 0],
+          transition: { duration: 0.35, repeat: Infinity },
         } : { rotate: 0 }}
         aria-label={`Open ${app.name}`}
-        className={`w-[60px] h-[60px] sm:w-[64px] sm:h-[64px] flex items-center justify-center shadow-md overflow-hidden text-white relative flex-shrink-0 ${
-          app.iconColor.startsWith('bg-') ? app.iconColor : ''
-        }`}
+        /* 
+          8px grid: icon is 56x56px (7u) on mobile, 60x60px on sm.
+          Dock icons same size, but no label below → tighter vertical rhythm 
+        */
+        className={`
+          w-[56px] h-[56px] sm:w-[60px] sm:h-[60px]
+          flex items-center justify-center
+          overflow-hidden text-white relative flex-shrink-0
+          ${app.iconColor.startsWith('bg-') ? app.iconColor : ''}
+          ${app.isDock ? 'opacity-100' : isActive ? 'opacity-100' : 'opacity-95'}
+        `}
         style={{
-          boxShadow: '0 8px 16px -4px rgba(0,0,0,0.15), inset 0 2px 4px rgba(255,255,255,0.4)',
+          boxShadow: app.isDock
+            ? '0 4px 12px -2px rgba(0,0,0,0.2), inset 0 1px 2px rgba(255,255,255,0.35)'
+            : '0 6px 16px -4px rgba(0,0,0,0.18), inset 0 1px 2px rgba(255,255,255,0.3)',
           background: app.iconColor.startsWith('bg-') ? undefined : app.iconColor,
-          borderRadius: 16
+          borderRadius: 15,
         }}
       >
         <motion.div layoutId={`app-icon-${app.id}`} className="z-10 pointer-events-none">
-           <app.icon size={32} strokeWidth={1.5} />
+          <app.icon size={28} strokeWidth={1.8} />
         </motion.div>
-        <div className="absolute inset-0 bg-black opacity-0 group-active:opacity-10 transition-opacity" />
-        
-        {/* Jiggle mode delete badge (purely cosmetic) */}
+
+        {/* Press ripple overlay */}
+        <div className="absolute inset-0 bg-black opacity-0 active:opacity-10 transition-opacity rounded-[15px]" />
+
+        {/* Jiggle delete badge */}
         {isJiggling && (
-          <motion.div 
+          <motion.div
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
-            className="absolute -top-1.5 -left-1.5 w-5 h-5 bg-gray-500/80 rounded-full flex items-center justify-center text-white z-20"
+            transition={{ type: 'spring', stiffness: 400, damping: 15 }}
+            className="absolute -top-1.5 -left-1.5 w-5 h-5 bg-black/60 rounded-full flex items-center justify-center z-20"
           >
-            <span className="text-[10px] font-black leading-none">×</span>
+            <span className="text-[11px] font-black leading-none text-white">×</span>
           </motion.div>
         )}
       </motion.button>
-      <span className={`text-white text-[11px] font-bold tracking-tight leading-tight w-full text-center drop-shadow-md px-0.5 ${app.isDock ? 'mt-0.5 opacity-90' : ''}`}>
-        {app.name}
-      </span>
+
+      {/* Label — hidden for dock icons */}
+      {!app.isDock && (
+        <span className="text-white text-[11px] font-semibold tracking-tight leading-tight w-full text-center drop-shadow-md px-0.5 truncate">
+          {app.name}
+        </span>
+      )}
     </div>
   );
 }

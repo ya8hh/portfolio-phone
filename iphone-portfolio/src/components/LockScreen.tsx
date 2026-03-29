@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useAppContext } from '../hooks/useAppContext';
+import DynamicIsland from './DynamicIsland';
+import { Battery, Wifi, Signal } from 'lucide-react';
 
 export default function LockScreen({ onUnlock }: { onUnlock: () => void }) {
   const { wallpaper } = useAppContext();
@@ -25,13 +27,28 @@ export default function LockScreen({ onUnlock }: { onUnlock: () => void }) {
       {/* Overlay */}
       <div className="absolute inset-0 bg-black/30 backdrop-blur-[1px] z-0" />
 
-      {/* Notch */}
-      <div className="relative z-10 w-full flex justify-center pt-0">
-        <div className="w-[120px] h-[30px] bg-black rounded-b-3xl" />
+      {/* Custom top bar for lockscreen to match iOS */}
+      <div className="absolute top-0 left-0 w-full px-5 flex justify-between items-start z-[60] text-white" style={{ paddingTop: 'calc(env(safe-area-inset-top, 0px) + 14px)', paddingBottom: '6px' }}>
+          <div className="flex-1 flex justify-start pl-1 items-center h-8 font-semibold text-xs text-white/90">
+            Jio
+          </div>
+          <div className="flex-1 flex justify-end gap-1.5 pr-1 items-center h-8">
+            <Signal size={14} strokeWidth={2.5} />
+            <Wifi size={14} strokeWidth={2.5} />
+            <Battery size={16} strokeWidth={2} />
+          </div>
       </div>
 
-      {/* Time & Date */}
-      <div className="relative z-10 flex flex-col items-center mt-8">
+      {/* Dynamic Island for Lockscreen */}
+      <div className="absolute top-[calc(env(safe-area-inset-top,0px)+10px)] left-1/2 -translate-x-1/2 z-[60]">
+        <DynamicIsland />
+      </div>
+
+      {/* Time & Date — padded below real device notch / dynamic island */}
+      <div
+        className="relative z-10 flex flex-col items-center w-full"
+        style={{ paddingTop: 'calc(env(safe-area-inset-top, 0px) + 64px)' }}
+      >
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
